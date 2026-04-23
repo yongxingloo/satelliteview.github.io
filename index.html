@@ -1,107 +1,154 @@
 <!DOCTYPE html>
+<!-- Root HTML document for the main satelliteview application page. -->
 <html lang="en">
 <head>
+  <!-- Define UTF-8 so text renders consistently across browsers. -->
   <meta charset="UTF-8">
+  <!-- Ensure responsive scaling on mobile/tablet screens. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Browser tab title for the main app page. -->
   <title>Satellite Timelapse</title>
+
+  <!-- Performance hint: prepare early connection to Google Fonts endpoints. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Load the Inter font family used by the UI theme. -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Load Leaflet's default map styles from CDN. -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   >
+  <!-- Load local application styles that define the page layout and components. -->
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <!-- Main page container that holds hero content and all interactive panels. -->
   <main class="page-shell">
+    <!-- Intro hero: page purpose, title, and shortcut to documentation page. -->
     <section class="hero-panel">
+      <!-- Small label above the main heading. -->
       <p class="eyebrow">Satellite Timelapse</p>
+      <!-- Product/tool name. -->
       <h1>satelliteview</h1>
+      <!-- Short explanation of what the tool does for users. -->
       <p class="hero-copy">
         Select an area, load matching satellite images, and preview the sequence as a timelapse.
         This page enables you to easily track, visualise, and analyse environmental changes and global events 
       </p>
+      <!-- Primary call-to-action area for supporting pages. -->
       <div class="hero-actions">
+        <!-- Link to the guide page with detailed usage instructions. -->
         <a class="button learn-more-link" href="./learn-more.html">Learn more</a>
       </div>
     </section>
 
+    <!-- Main workspace: settings, map, analytics, result list, and preview player. -->
     <section class="workspace-grid">
+      <!-- Left control panel where search filters and area actions are configured. -->
       <section class="panel controls-panel">
+        <!-- Panel heading with title and concise helper text. -->
         <div class="panel-heading">
           <div>
+            <!-- Kicker indicates the panel category. -->
             <p class="panel-kicker">Search</p>
+            <!-- Main heading for this controls section. -->
             <h2>Settings</h2>
           </div>
+          <!-- Supporting description for this panel's purpose. -->
           <p class="panel-copy">Choose a time range and filter the results.</p>
         </div>
 
+        <!-- Grid of labeled input fields used to build the search request. -->
         <div class="form-grid">
+          <!-- Dataset selector (currently fixed to Sentinel-2 L2A). -->
           <label class="field">
             <span>Collection</span>
             <select id="collectionSelect">
+              <!-- Default and currently only available collection option. -->
               <option value="sentinel-2-l2a" selected>Sentinel-2 L2A</option>
             </select>
           </label>
 
+          <!-- Search start date field. -->
           <label class="field">
             <span>Start date</span>
             <input id="startDateInput" type="date">
           </label>
 
+          <!-- Search end date field. -->
           <label class="field">
             <span>End date</span>
             <input id="endDateInput" type="date">
           </label>
 
+          <!-- Cloud filter upper bound to reduce cloudy scenes. -->
           <label class="field">
             <span>Cloud cover max (%)</span>
             <input id="cloudInput" type="number" min="0" max="100" value="25">
           </label>
 
+          <!-- Upper limit for number of scenes requested from API. -->
           <label class="field">
             <span>Scene limit</span>
             <input id="limitInput" type="number" min="5" max="60" value="18">
           </label>
 
+          <!-- Strategy selector controlling timelapse scene filtering strictness. -->
           <label class="field">
             <span>Sequence</span>
             <select id="sequenceModeSelect">
+              <!-- Balanced: compromise between quality and quantity. -->
               <option value="balanced" selected>Balanced</option>
+              <!-- Strict: favors stronger spatial consistency. -->
               <option value="strict">Strict alignment</option>
+              <!-- Dense: preserves more frames for higher temporal density. -->
               <option value="dense">Dense timeline</option>
             </select>
           </label>
 
+          <!-- Read-only area summary, updated when AOI changes. -->
           <label class="field field-wide">
             <span>Area</span>
             <output id="bboxOutput">No area selected yet.</output>
           </label>
         </div>
 
+        <!-- Button row for AOI selection and search actions. -->
         <div class="action-row">
+          <!-- Start/stop rectangle drawing mode on the map. -->
           <button id="drawAreaButton" type="button" class="button button-primary">Draw area</button>
+          <!-- Set AOI from current map viewport bounds. -->
           <button id="viewAreaButton" type="button" class="button">Use map view</button>
+          <!-- Clear AOI and current result state. -->
           <button id="clearAreaButton" type="button" class="button">Clear</button>
+          <!-- Submit search request using current filter settings. -->
           <button id="searchButton" type="button" class="button button-strong">Search</button>
         </div>
 
+        <!-- Live status strip for search state and result count feedback. -->
         <div class="status-strip">
           <div>
+            <!-- Label for status message value. -->
             <span class="status-label">Status</span>
+            <!-- Dynamic status text updated by app logic. -->
             <strong id="statusText">Choose an area to begin.</strong>
           </div>
           <div>
+            <!-- Label for result count value. -->
             <span class="status-label">Results</span>
+            <!-- Dynamic result count text updated after searches. -->
             <strong id="resultCountText">0 scenes loaded</strong>
           </div>
         </div>
       </section>
 
+      <!-- Interactive map panel used to define/search geographic area. -->
       <section class="panel map-panel">
+        <!-- Compact heading variant for the map panel. -->
         <div class="panel-heading compact">
           <div>
             <p class="panel-kicker">Map</p>
@@ -109,13 +156,18 @@
           </div>
           <p class="panel-copy">Draw a rectangle or use the current view.</p>
         </div>
+        <!-- Base map style toggle; role/label improves accessibility for assistive tech. -->
         <div class="map-toolbar" role="group" aria-label="Map style">
+          <!-- Switch map to street/cartographic base layer. -->
           <button id="streetsLayerButton" type="button" class="map-toggle">Streets</button>
+          <!-- Switch map to satellite imagery base layer (default active). -->
           <button id="satelliteLayerButton" type="button" class="map-toggle active">Satellite</button>
         </div>
+        <!-- Leaflet map mount point; script injects canvas/tiles here. -->
         <div id="map" class="map-frame" aria-label="Satellite search map"></div>
       </section>
 
+      <!-- Analytics panel summarizing temporal and quality characteristics of results. -->
       <section class="panel analytics-panel">
         <div class="panel-heading compact">
           <div>
@@ -125,23 +177,29 @@
           <p class="panel-copy">See when scenes were captured and how the current set is distributed over time.</p>
         </div>
 
+        <!-- Grid combining numeric stat cards and visual timeline strip. -->
         <div class="analytics-grid">
+          <!-- Stats container; starts with placeholder values before first search. -->
           <div class="stats-grid" id="statsGrid">
+            <!-- Placeholder card: total scenes. -->
             <article class="stat-card">
               <span class="status-label">Scenes</span>
               <strong>0</strong>
               <p>No search yet</p>
             </article>
+            <!-- Placeholder card: temporal range. -->
             <article class="stat-card">
               <span class="status-label">Range</span>
               <strong>--</strong>
               <p>Waiting for results</p>
             </article>
+            <!-- Placeholder card: average revisit interval. -->
             <article class="stat-card">
               <span class="status-label">Revisit time</span>
               <strong>--</strong>
               <p>Average revisit</p>
             </article>
+            <!-- Placeholder card: average cloud metric. -->
             <article class="stat-card">
               <span class="status-label">Cloud</span>
               <strong>--</strong>
@@ -149,14 +207,19 @@
             </article>
           </div>
 
+          <!-- Timeline visualization area with scale and clickable dots. -->
           <div class="timeline-panel">
+            <!-- Date labels at both ends of the timeline. -->
             <div class="timeline-scale" id="timelineScale"></div>
+            <!-- Timeline track where per-scene markers are rendered dynamically. -->
             <div class="timeline-track" id="timelineTrack" aria-live="polite"></div>
           </div>
         </div>
       </section>
 
+      <!-- Lower row with scene result list on left and frame player on right. -->
       <section class="media-row">
+        <!-- Scene list panel populated after each successful search. -->
         <section class="panel results-panel">
           <div class="panel-heading compact">
             <div>
@@ -165,59 +228,80 @@
             </div>
             <p class="panel-copy">Select a scene to inspect it on the map and in the player.</p>
           </div>
+          <!-- Dynamic card list inserted by JavaScript; aria-live announces updates. -->
           <div id="resultsList" class="results-list" aria-live="polite"></div>
         </section>
 
+        <!-- Timelapse player and export controls for selected/current sequence. -->
         <section class="panel player-panel">
           <div class="panel-heading compact">
             <div>
               <p class="panel-kicker">Preview</p>
               <h2>Timelapse</h2>
             </div>
+          <!-- Helper text describing player actions. -->
           <p class="panel-copy">Play the sequence, export a video, or download the frames.</p>
           </div>
  
+          <!-- Visual stage: shows selected frame image or empty placeholder text. -->
           <div class="player-stage">
+            <!-- Image element receives frame URL dynamically. -->
             <img id="playerImage" alt="Selected satellite frame preview">
+            <!-- Placeholder shown when no frame is selected/available. -->
             <div id="playerPlaceholder" class="player-placeholder">
               Search an area to populate the timelapse frames.
             </div>
           </div>
 
+          <!-- Metadata block describing current frame position and details. -->
           <div class="player-meta">
             <div>
+              <!-- Label for frame index/date headline. -->
               <span class="status-label">Frame</span>
+              <!-- Dynamic title: index and acquisition date. -->
               <strong id="playerTitle">No frame selected</strong>
             </div>
             <div>
+              <!-- Label for scene details line. -->
               <span class="status-label">Details</span>
+              <!-- Dynamic subtitle: id/cloud/coverage information. -->
               <strong id="playerSubtitle">Awaiting overpass search</strong>
             </div>
           </div>
 
+          <!-- Playback and export controls plus speed/frame sliders. -->
           <div class="player-controls">
+            <!-- Toggle sequence playback. Disabled until results are available. -->
             <button id="playButton" type="button" class="button button-primary" disabled>Play</button>
+            <!-- Export current sequence to WebM. Requires at least two frames. -->
             <button id="exportButton" type="button" class="button" disabled>Download WebM</button>
+            <!-- Download all available frame images as ZIP. -->
             <button id="downloadFramesButton" type="button" class="button" disabled>Download ZIP</button>
+            <!-- Playback speed slider (frames per second controlled in JS). -->
             <label class="inline-field">
               <span>Speed</span>
               <input id="speedInput" type="range" min="1" max="6" value="2">
             </label>
+            <!-- Timeline scrubber to move between loaded frames manually. -->
             <label class="inline-field grow">
               <span>Frame</span>
               <input id="timelineInput" type="range" min="0" max="0" value="0" disabled>
             </label>
           </div>
 
+          <!-- Direct link to open currently selected frame in a new tab. -->
           <a id="downloadLink" class="download-link" href="#" target="_blank" rel="noreferrer noopener" hidden>Open frame</a>
         </section>
       </section>
     </section>
   </main>
 
+  <!-- Global footer with navigation links to supporting pages. -->
   <footer class="site-footer">
     <div class="site-footer-inner">
+      <!-- Repeated product name/brand label. -->
       <p>satelliteview</p>
+      <!-- Footer links for guide and legal/context notes. -->
       <div class="site-footer-links">
         <a href="./learn-more.html">Learn more</a>
         <a href="./disclaimer.html">Disclaimer</a>
@@ -225,12 +309,15 @@
     </div>
   </footer>
 
+  <!-- Leaflet JavaScript library powers map rendering and interactions. -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
+  <!-- JSZip library enables client-side ZIP generation for frame downloads. -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <!-- Main application logic: map, search, timeline, playback, and export. -->
   <script src="./app.js"></script>
 </body>
 </html>

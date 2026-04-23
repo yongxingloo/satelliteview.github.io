@@ -1,42 +1,63 @@
 <!DOCTYPE html>
+<!-- Root HTML document for the usage guide page. -->
 <html lang="en">
 <head>
+  <!-- Character encoding for consistent text rendering. -->
   <meta charset="UTF-8">
+  <!-- Responsive viewport for mobile-friendly scaling. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Browser tab title for the help/guide page. -->
   <title>Learn More | Satellite Timelapse</title>
+
+  <!-- Preconnect hints reduce latency for font downloads. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Shared Inter font family used by the site style system. -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Shared stylesheet with panel, card, and layout definitions. -->
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <!-- Main content wrapper for the guide page. -->
   <main class="page-shell">
+    <!-- Intro hero gives a quick overview of the tool workflow. -->
     <section class="hero-panel">
+      <!-- Context label for this page type. -->
       <p class="eyebrow">Guide</p>
+      <!-- Main heading for the instructional content. -->
       <h1>How to use satelliteview.</h1>
+      <!-- Summary describing search, comparison, and export capabilities. -->
       <p class="hero-copy">
         This tool helps you search public satellite imagery over a selected area, compare overpasses through time,
         and export the results as a timelapse or a ZIP of individual frames.
       </p>
+      <!-- Navigation action returning to the application page. -->
       <div class="hero-actions">
         <a class="button learn-more-link" href="./index.html">Back to tool</a>
       </div>
     </section>
 
+    <!-- Step 1: explain how users define their search area on the map. -->
     <section class="panel learn-more-section">
+      <!-- Step heading block with number, title, and summary sentence. -->
       <div class="panel-heading">
         <div>
+          <!-- Ordered step marker for guided reading. -->
           <p class="panel-kicker">1</p>
           <h2>Select an area</h2>
         </div>
+        <!-- One-line explanation of this step's focus. -->
         <p class="panel-copy">Use the map to choose where you want to search.</p>
       </div>
+      <!-- Two-card layout describing both area selection methods. -->
       <div class="analytics-grid learn-more-grid">
+        <!-- Card: two-click rectangle drawing mode. -->
         <article class="stat-card">
           <span class="status-label">Draw area</span>
           <strong>Rectangle mode</strong>
           <p>Click once for the first corner and once again for the opposite corner.</p>
         </article>
+        <!-- Card: use current map viewport directly as AOI. -->
         <article class="stat-card">
           <span class="status-label">Use map view</span>
           <strong>Current extent</strong>
@@ -45,6 +66,7 @@
       </div>
     </section>
 
+    <!-- Step 2: explain available search/filter parameters. -->
     <section class="panel learn-more-section">
       <div class="panel-heading">
         <div>
@@ -53,22 +75,27 @@
         </div>
         <p class="panel-copy">The current version is optimized for Sentinel-2 scenes.</p>
       </div>
+      <!-- Four-card grid documenting each main search control. -->
       <div class="stats-grid learn-more-stats">
+        <!-- Card: date interval control. -->
         <article class="stat-card">
           <span class="status-label">Date range</span>
           <strong>When</strong>
           <p>Choose the time interval you want to study.</p>
         </article>
+        <!-- Card: cloud threshold tradeoff explanation. -->
         <article class="stat-card">
           <span class="status-label">Cloud cover</span>
           <strong>Filter</strong>
           <p>Lower values keep cleaner scenes, but may reduce the number of results.</p>
         </article>
+        <!-- Card: max number of requested scenes. -->
         <article class="stat-card">
           <span class="status-label">Scene limit</span>
           <strong>Count</strong>
           <p>Controls how many candidate overpasses are requested from the search API.</p>
         </article>
+        <!-- Card: sequence mode behavior overview. -->
         <article class="stat-card">
           <span class="status-label">Sequence</span>
           <strong>Balanced / Strict / Dense</strong>
@@ -77,6 +104,7 @@
       </div>
     </section>
 
+    <!-- Step 3: explain how to interpret connected output panels. -->
     <section class="panel learn-more-section">
       <div class="panel-heading">
         <div>
@@ -85,22 +113,27 @@
         </div>
         <p class="panel-copy">After searching, the app updates several connected views.</p>
       </div>
+      <!-- Four-card grid describing timeline, stats, results, and player. -->
       <div class="stats-grid learn-more-stats">
+        <!-- Card: temporal distribution panel. -->
         <article class="stat-card">
           <span class="status-label">Timeline</span>
           <strong>When scenes happened</strong>
           <p>Shows the distribution of overpasses across the selected time range.</p>
         </article>
+        <!-- Card: quick summary metrics panel. -->
         <article class="stat-card">
           <span class="status-label">Statistics</span>
           <strong>Quick summary</strong>
           <p>Includes number of scenes, date range, revisit time, and average cloud cover.</p>
         </article>
+        <!-- Card: clickable scene list behavior. -->
         <article class="stat-card">
           <span class="status-label">Results</span>
           <strong>Scene list</strong>
           <p>Select a scene to focus it on the map and preview it in the timelapse panel.</p>
         </article>
+        <!-- Card: frame player and inspection purpose. -->
         <article class="stat-card">
           <span class="status-label">Timelapse</span>
           <strong>Main preview</strong>
@@ -109,6 +142,7 @@
       </div>
     </section>
 
+    <!-- Step 4: explain export features and output formats. -->
     <section class="panel learn-more-section">
       <div class="panel-heading">
         <div>
@@ -117,12 +151,15 @@
         </div>
         <p class="panel-copy">The current app supports two download paths.</p>
       </div>
+      <!-- Two-card layout for WebM and ZIP export options. -->
       <div class="analytics-grid learn-more-grid">
+        <!-- Card: animation/video export behavior. -->
         <article class="stat-card">
           <span class="status-label">Download WebM</span>
           <strong>Animation export</strong>
           <p>Creates a video from the currently loaded sequence using the order shown in the timelapse panel.</p>
         </article>
+        <!-- Card: individual frame archive behavior. -->
         <article class="stat-card">
           <span class="status-label">Download ZIP</span>
           <strong>Frame export</strong>
@@ -132,9 +169,12 @@
     </section>
   </main>
 
+  <!-- Shared footer with links to tool and disclaimer pages. -->
   <footer class="site-footer">
     <div class="site-footer-inner">
+      <!-- Project name label. -->
       <p>satelliteview</p>
+      <!-- Footer navigation options relevant to this guide page. -->
       <div class="site-footer-links">
         <a href="./index.html">Back to tool</a>
         <a href="./disclaimer.html">Disclaimer</a>

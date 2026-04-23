@@ -1,42 +1,63 @@
 <!DOCTYPE html>
+<!-- Root HTML document for the disclaimer page. -->
 <html lang="en">
 <head>
+  <!-- Character encoding for broad text compatibility. -->
   <meta charset="UTF-8">
+  <!-- Responsive viewport to keep layout usable on smaller screens. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Browser tab title for legal/context information page. -->
   <title>Disclaimer | Satellite Timelapse</title>
+
+  <!-- Preconnect improves font loading performance from Google endpoints. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Shared font family used across the site UI. -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Shared stylesheet with common layout and component styling. -->
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <!-- Main wrapper containing page intro and disclaimer sections. -->
   <main class="page-shell">
+    <!-- Hero section explains the purpose and caution level of this page. -->
     <section class="hero-panel">
+      <!-- Small top label to identify section type. -->
       <p class="eyebrow">Disclaimer</p>
+      <!-- Main heading setting context for the content below. -->
       <h1>Important usage notes.</h1>
+      <!-- High-level warning about interpretation and responsible use. -->
       <p class="hero-copy">
         satelliteview is intended as an exploratory visual tool. The information shown here should be interpreted
         carefully and verified independently before being used for scientific, operational, legal, or safety-critical decisions.
       </p>
+      <!-- Quick navigation action back to the main interactive tool page. -->
       <div class="hero-actions">
         <a class="button learn-more-link" href="./index.html">Back to tool</a>
       </div>
     </section>
 
+    <!-- Section 1: availability constraints and third-party dependency notes. -->
     <section class="panel learn-more-section">
+      <!-- Section heading with number, title, and short summary. -->
       <div class="panel-heading">
         <div>
+          <!-- Number marker used for ordered reading. -->
           <p class="panel-kicker">1</p>
           <h2>Data and availability</h2>
         </div>
+        <!-- Concise summary of what this section emphasizes. -->
         <p class="panel-copy">The application depends on third-party public imagery services.</p>
       </div>
+      <!-- Two-card grid highlighting key availability caveats. -->
       <div class="stats-grid learn-more-stats">
+        <!-- Card: services are external and may change over time. -->
         <article class="stat-card">
           <span class="status-label">Public sources</span>
           <strong>External services</strong>
           <p>Scene search, rendering, and downloads rely on remote public APIs and may change or become unavailable.</p>
         </article>
+        <!-- Card: scene coverage and completeness are not guaranteed. -->
         <article class="stat-card">
           <span class="status-label">Coverage</span>
           <strong>Not guaranteed</strong>
@@ -45,6 +66,7 @@
       </div>
     </section>
 
+    <!-- Section 2: guidance on interpreting outputs carefully. -->
     <section class="panel learn-more-section">
       <div class="panel-heading">
         <div>
@@ -53,12 +75,15 @@
         </div>
         <p class="panel-copy">Visual outputs are helpful, but they are not a substitute for formal analysis.</p>
       </div>
+      <!-- Two-card grid focused on interpretation limits. -->
       <div class="stats-grid learn-more-stats">
+        <!-- Card: timelapse is for exploration, not final evidence by itself. -->
         <article class="stat-card">
           <span class="status-label">Timelapse view</span>
           <strong>Exploratory only</strong>
           <p>Frame alignment, rendering choices, and filtering may affect how changes appear over time.</p>
         </article>
+        <!-- Card: metrics shown are summaries, not certified measurements. -->
         <article class="stat-card">
           <span class="status-label">Statistics</span>
           <strong>Summary metrics</strong>
@@ -67,6 +92,7 @@
       </div>
     </section>
 
+    <!-- Section 3: responsibility and verification recommendations. -->
     <section class="panel learn-more-section">
       <div class="panel-heading">
         <div>
@@ -75,12 +101,15 @@
         </div>
         <p class="panel-copy">Users remain responsible for how results are used.</p>
       </div>
+      <!-- Two-card layout with user responsibility statements. -->
       <div class="analytics-grid learn-more-grid">
+        <!-- Card: recommend external verification workflows. -->
         <article class="stat-card">
           <span class="status-label">Independent verification</span>
           <strong>Recommended</strong>
           <p>Always confirm important findings with original datasets, domain experts, or validated workflows.</p>
         </article>
+        <!-- Card: no warranty statement for tool outputs. -->
         <article class="stat-card">
           <span class="status-label">No warranty</span>
           <strong>Use with care</strong>
@@ -89,6 +118,7 @@
       </div>
     </section>
 
+    <!-- Section 4: data source attribution and external service acknowledgments. -->
     <section class="panel learn-more-section">
       <div class="panel-heading">
         <div>
@@ -97,22 +127,27 @@
         </div>
         <p class="panel-copy">This tool depends on public Sentinel-2 imagery and external web services for search and rendering.</p>
       </div>
+      <!-- Four-card grid listing dataset/services and attribution guidance. -->
       <div class="stats-grid learn-more-stats">
+        <!-- Card: primary imagery dataset used in this tool. -->
         <article class="stat-card">
           <span class="status-label">Dataset</span>
           <strong>Copernicus Sentinel-2</strong>
           <p>The imagery shown here is based on public Sentinel-2 data from the Copernicus programme.</p>
         </article>
+        <!-- Card: service used to search scene metadata. -->
         <article class="stat-card">
           <span class="status-label">Search API</span>
           <strong>Earth Search STAC API</strong>
           <p>This app queries the Element 84 Earth Search STAC API to discover scenes and read scene metadata.</p>
         </article>
+        <!-- Card: service used to render cropped previews. -->
         <article class="stat-card">
           <span class="status-label">Rendering API</span>
           <strong>TiTiler</strong>
           <p>This app requests rendered crops through TiTiler in order to display previews, timelapses, and downloads.</p>
         </article>
+        <!-- Card: reminder to credit data/service providers when sharing outputs. -->
         <article class="stat-card">
           <span class="status-label">Acknowledge</span>
           <strong>Credit the sources</strong>
@@ -123,9 +158,12 @@
 
   </main>
 
+  <!-- Shared footer with quick links back to tool and guide pages. -->
   <footer class="site-footer">
     <div class="site-footer-inner">
+      <!-- Project name label in the footer. -->
       <p>satelliteview</p>
+      <!-- Footer navigation links relevant to this page. -->
       <div class="site-footer-links">
         <a href="./index.html">Back to tool</a>
         <a href="./learn-more.html">Learn more</a>
