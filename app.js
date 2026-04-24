@@ -1,6 +1,8 @@
 // Remote endpoints used for scene search and server-side image preview rendering.
 const EARTH_SEARCH_API = "https://earth-search.aws.element84.com/v1/search";
 const TITILER_STAC_API = "https://titiler.xyz/stac/bbox";
+const PLANETARY_COMPUTER_STAC_API = "https://planetarycomputer.microsoft.com/api/stac/v1/search";
+const PLANETARY_COMPUTER_DATA_API = "https://planetarycomputer.microsoft.com/api/data/v1/item";
 
 // Initial map camera settings (Zurich area).
 const DEFAULT_VIEW = {
@@ -391,6 +393,8 @@ function sceneFullyCoversBBox(sceneBBox, targetBBox) {
 function resolveFrameSource(item) {
   // STAC assets can vary by collection/provider.
   const assets = item.assets ?? {};
+  const collection = item.collection ?? "";
+  const thumbnailLink = item.links?.find((link) => link.rel === "thumbnail")?.href ?? "";
 
   // Prefer explicit RGB band triplets when present.
   if (assets.red?.href && assets.green?.href && assets.blue?.href) {
@@ -412,6 +416,14 @@ function resolveFrameSource(item) {
   }
 
   // Fall back to preview-like images if full assets are unavailable.
+  if (thumbnailLink) {
+    return { type: "preview-image", href: thumbnailLink };
+  }
+
+  if (assets.reduced_resolution_browse?.href) {
+    return { type: "preview-image", href: assets.reduced_resolution_browse.href };
+  }
+
   if (assets.rendered_preview?.href) {
     return { type: "preview-image", href: assets.rendered_preview.href };
   }
@@ -429,6 +441,52 @@ function resolveFrameSource(item) {
   }
 
   return null;
+}
+
+// Resolve a browser-friendly preview image when dynamic AOI rendering is unavailable.
+function resolveFallbackPreviewUrl(item) {
+  const assets = item.assets ?? {};
+  const thumbnailLink = item.links?.find((link) => link.rel === "thumbnail")?.href ?? "";
+
+  if (thumbnailLink) {
+    return thumbnailLink;
+  }
+
+  if (assets.reduced_resolution_browse?.href) {
+    return assets.reduced_resolution_browse.href;
+  }
+
+  if (assets.rendered_preview?.href) {
+    return assets.rendered_preview.href;
+  }
+
+  if (assets.overview?.href) {
+    return assets.overview.href;
+  }
+
+  if (assets.preview?.href) {
+    return assets.preview.href;
+  }
+
+  if (assets.thumbnail?.href) {
+    return assets.thumbnail.href;
+  }
+
+  return "";
+}
+
+// Prefer a STAC item URL whose assets are directly reachable over HTTPS.
+function resolveRenderableItemUrl(item) {
+  const selfLink = item.links?.find((link) => link.rel === "self")?.href ?? "";
+
+  if (item.collection === "landsat-c2-l2") {
+    const usgsSurfaceReflectanceLink = item.links?.find((link) => link.rel === "via" && /landsat-c2l2-sr/i.test(link.href))?.href ?? "";
+    if (usgsSurfaceReflectanceLink) {
+      return usgsSurfaceReflectanceLink;
+    }
+  }
+
+  return selfLink;
 }
 
 // Build a TiTiler URL that crops and renders the same AOI for each frame.
@@ -461,6 +519,28 @@ function buildTitilerPreviewUrl(itemUrl, source, bbox) {
   return `${TITILER_STAC_API}/${bboxPath}/900x900.png?${params.toString()}`;
 }
 
+// Build a Planetary Computer bbox-render URL for collections it serves directly.
+function buildPlanetaryComputerPreviewUrl(item, bbox) {
+  const bboxPath = bbox.map((value) => Number(value).toFixed(5)).join(",");
+  const params = new URLSearchParams({
+    collection: item.collection,
+    item: item.id,
+    width: "900",
+    height: "900",
+    format: "png",
+    coord_crs: "epsg:4326",
+    dst_crs: "epsg:4326",
+    color_formula: "gamma RGB 2.7, saturation 1.5, sigmoidal RGB 15 0.55"
+  });
+
+  params.append("assets", "red");
+  params.append("assets", "green");
+  params.append("assets", "blue");
+  params.append("asset_as_band", "true");
+
+  return `${PLANETARY_COMPUTER_DATA_API}/bbox/${bboxPath}/900x900.png?${params.toString()}`;
+}
+
 // Resolve a direct preview URL for a scene, preferring AOI-cropped TiTiler output.
 function resolveFrameUrl(item) {
   const frameSource = resolveFrameSource(item);
@@ -470,8 +550,13 @@ function resolveFrameUrl(item) {
     return "";
   }
 
-  // Prefer the STAC self link for TiTiler requests.
-  const itemUrl = item.links?.find((link) => link.rel === "self")?.href ?? "";
+  // Landsat on Planetary Computer can be rendered directly without user login.
+  if (state.bbox && item.collection === "landsat-c2-l2") {
+    return buildPlanetaryComputerPreviewUrl(item, state.bbox);
+  }
+
+  // Prefer a STAC item whose assets are directly renderable over HTTPS.
+  const itemUrl = resolveRenderableItemUrl(item);
 
   // Build a consistently cropped frame for timelapse alignment.
   if (
@@ -484,8 +569,7 @@ function resolveFrameUrl(item) {
 
   // If only static previews exist, allow common web image formats.
   if (frameSource.type === "preview-image") {
-    const lowerHref = frameSource.href.toLowerCase();
-    if (lowerHref.endsWith(".jpg") || lowerHref.endsWith(".jpeg") || lowerHref.endsWith(".png") || lowerHref.endsWith(".webp")) {
+    if (/^https?:\/\//i.test(frameSource.href)) {
       return frameSource.href;
     }
   }
@@ -506,6 +590,7 @@ function mapFeatureToScene(feature) {
   const provider = properties.platform ?? properties.constellation ?? "Satellite scene";
   // Resolve preview URL and spatial coverage metrics used for filtering.
   const frameUrl = resolveFrameUrl(item);
+  const fallbackFrameUrl = resolveFallbackPreviewUrl(item);
   const coverageScore = computeCoverageScore(item.bbox ?? null, state.bbox);
   const fullCoverage = sceneFullyCoversBBox(item.bbox ?? null, state.bbox);
   const tileId = properties["s2:tile_id"] ?? properties["mgrs:tile"] ?? "";
@@ -522,9 +607,15 @@ function mapFeatureToScene(feature) {
     fullCoverage,
     tileId,
     frameUrl,
+    fallbackFrameUrl,
     browserUrl: item.links?.find((link) => link.rel === "self")?.href ?? "",
     item
   };
+}
+
+// Pick the correct STAC search endpoint for the selected collection.
+function resolveSearchApi(collectionId) {
+  return collectionId === "landsat-c2-l2" ? PLANETARY_COMPUTER_STAC_API : EARTH_SEARCH_API;
 }
 
 // Keep one best scene per day to avoid redundant frames.
@@ -885,6 +976,9 @@ function renderPlayer() {
   // Show frame image when available and expose direct download link.
   if (selectedScene.frameUrl) {
     playerImage.src = selectedScene.frameUrl;
+    playerImage.dataset.fallbackUrl = selectedScene.fallbackFrameUrl ?? "";
+    playerImage.dataset.primaryUrl = selectedScene.frameUrl;
+    playerImage.dataset.sceneCollection = selectedScene.collection ?? "";
     playerImage.hidden = false;
     playerPlaceholder.hidden = true;
     downloadLink.href = selectedScene.frameUrl;
@@ -984,8 +1078,8 @@ async function searchScenes() {
   setStatus("Searching public STAC scenes for overpasses that intersect the selected area...");
 
   try {
-    // Query Earth Search STAC API with the generated payload.
-    const response = await fetch(EARTH_SEARCH_API, {
+    // Query the provider-specific STAC API with the generated payload.
+    const response = await fetch(resolveSearchApi(collectionSelect.value), {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -1318,6 +1412,27 @@ playButton.addEventListener("click", () => {
 
 exportButton.addEventListener("click", exportAnimation);
 downloadFramesButton.addEventListener("click", downloadAllFrames);
+
+playerImage.addEventListener("error", () => {
+  const fallbackUrl = playerImage.dataset.fallbackUrl || "";
+  const failedUrl = playerImage.currentSrc || playerImage.src || "";
+
+  if (fallbackUrl && failedUrl !== fallbackUrl) {
+    playerImage.src = fallbackUrl;
+    downloadLink.href = fallbackUrl;
+    downloadLink.hidden = false;
+    setStatus("Full-resolution AOI rendering is unavailable for this Landsat source, so a lower-resolution browse preview is being shown instead.");
+    return;
+  }
+
+  playerImage.removeAttribute("src");
+  playerImage.hidden = true;
+  playerPlaceholder.hidden = false;
+  playerPlaceholder.textContent = failedUrl
+    ? `The selected frame URL could not be rendered by the browser: ${failedUrl}`
+    : "The selected frame URL could not be rendered by the browser.";
+  downloadLink.hidden = !failedUrl;
+});
 
 speedInput.addEventListener("input", () => {
   // If currently playing, restart timer so new speed applies immediately.
